@@ -1,12 +1,15 @@
 {
 	"name": "Java",
-	"image": "mcr.microsoft.com/devcontainers/java:1-21",
-	"features": {
-		"ghcr.io/devcontainers/features/java:1": {
-			"version": "21",
-			"INSTALLMAVEN": "true",
-			"MAVENVERSION": "latest"
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": "..",
+		"args": {
+			"VARIANT": "21-bullseye"
 		}
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/java:1": {},
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
 	},
 	// Configure tool-specific properties.
 	"customizations": {

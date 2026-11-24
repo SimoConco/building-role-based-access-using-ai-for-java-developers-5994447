@@ -15,7 +15,7 @@ Learning objectives
 
 # Developer Setup
 - To ensure everything works, run `mvn clean install` in the root directory.
-- To run the application, run `mvn exec:java -Dexec.mainClass="com.ll.App"` in the root directory. This should print out "Hello World!".
+- Start MongoDB, set `JWT_SECRET` to a Base64-encoded key of at least 256 bits, then run the Spring Boot application as described below.
 
 ## Running the Application
 ### Starting the Application
@@ -29,23 +29,36 @@ mvn clean install
 docker-compose up -d
 ```
 
-3. Running all tests
+3. Run all tests:
 ```
-mvn clean test
+mvn test
 ```
 
-4. Start the server:
+4. Configure a signing key and start the server:
 ```bash
+export JWT_SECRET="$(openssl rand -base64 32)"
 mvn spring-boot:run -Dspring-boot.run.main-class=com.ll.App
 ```
 
 The application will start on port 8080 by default.
 
-## API Documentation
-Once the server is running, you can access:
-- Swagger UI: http://localhost:8080/swagger-ui/index.html
-- OpenAPI JSON: http://localhost:8080/v3/api-docs
-- OpenAPI YAML: http://localhost:8080/v3/api-docs.yaml
+### Personal Account API
+
+- `POST /api/auth/register` — create an account and return a JWT.
+- `POST /api/auth/login` — authenticate with email and password and return a JWT.
+- `GET /api/accounts/me` — get the authenticated account.
+- `PATCH /api/accounts/me` — update the authenticated account's email and/or password.
+- `DELETE /api/accounts/me` — delete the authenticated account.
+
+Send the token in the `Authorization: Bearer <token>` header for account routes. Registration and login accept JSON such as:
+```json
+{
+  "email": "octocat@github.com",
+  "password": "secure-password"
+}
+```
+
+The JWT signing key can be configured with `JWT_SECRET`; token lifetime is configurable with `JWT_EXPIRATION_MS` (milliseconds). MongoDB is configurable with `MONGODB_URI` and `MONGODB_DATABASE`.
 
 ## Instructor
 
@@ -60,4 +73,3 @@ Check out my other courses on [LinkedIn Learning](https://www.linkedin.com/learn
 
 [lil-course-url]: https://www.linkedin.com/learning/
 [lil-thumbnail-url]: https://media.licdn.com/dms/image/v2/D4D0DAQGgdcuarTc-2g/learning-public-crop_675_1200/B4DZU_nMwgHIAY-/0/1740528996100?e=2147483647&v=beta&t=mpANNDzx3OeNVM_jFQEZZQaarf9biGmP3mArYg-iMfQ
-

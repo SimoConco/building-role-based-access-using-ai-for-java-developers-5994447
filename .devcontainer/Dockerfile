@@ -1,11 +1,15 @@
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.236.0/containers/java/.devcontainer/base.Dockerfile
 
-# [Choice] Java version (use -bullseye variants on local arm64/Apple Silicon): 11, 17, 11-bullseye, 17-bullseye, 11-buster, 17-buster
-ARG VARIANT="17-bullseye"
-FROM mcr.microsoft.com/vscode/devcontainers/java:0-${VARIANT}
+# [Choice] Java version (use -bullseye variants on local arm64/Apple Silicon): 11, 17, 21, 11-bullseye, 17-bullseye, 21-bullseye, 11-buster, 17-buster
+ARG VARIANT="21-bullseye"
+FROM mcr.microsoft.com/devcontainers/java:${VARIANT}
+
+# Remove stale third-party Yarn repository entries that break the Docker feature installation.
+RUN rm -f /etc/apt/sources.list.d/yarn.list /etc/apt/sources.list.d/yarn.sources \
+    /etc/apt/trusted.gpg.d/yarn.gpg /usr/share/keyrings/yarn*.gpg
 
 # [Option] Install Maven
-ARG INSTALL_MAVEN="false"
+ARG INSTALL_MAVEN="true"
 ARG MAVEN_VERSION=""
 # [Option] Install Gradle
 ARG INSTALL_GRADLE="false"
