@@ -20,6 +20,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
+import com.model.OrganizationAccount;
+import com.model.OrganizationRole;
 import com.model.PersonalAccount;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -115,5 +117,71 @@ public class AccountRepositoryTest {
     MongoTemplate mongoTemplate(MongoDatabaseFactory mongoDatabaseFactory) {
       return new MongoTemplate(mongoDatabaseFactory);
     }
+  }
+
+  /**
+   * 1. Create a Personal Account for Alice
+   * 2. Validate that the account was created successfully and can be retrieved by email
+   * 3. Create an Organization Account for Alice
+   * 4. Validate that the account was created successfully and can be retrieved by owner ID
+   */
+
+  @Test 
+  void testCompleteOrganizationAccountCRUDOperation() {
+    // Step 1: Create a Personal Account for Alice
+    PersonalAccount personalAccount = new PersonalAccount("alice@github.com", "secure-password");
+    personalAccount = accountRepository.save(personalAccount);
+
+    // Step 2: Validate that the account was created successfully and can be retrieved by email
+    assertTrue(accountRepository.existsByEmail("alice@github.com"));
+    assertEquals(personalAccount.getId(), accountRepository.findByEmail("alice@github.com").get().getId());
+
+    // Step 3: Create an Organization Account for Alice
+    OrganizationAccount organizationAccount = new OrganizationAccount("GitHub", null, personalAccount.getId().toString(), null);
+    organizationAccount = (OrganizationAccount) mongoTemplate.save(organizationAccount);
+
+    // Step 4: Validate that the account was created successfully and can be retrieved by owner ID
+    assertTrue(accountRepository.existsById(organizationAccount.getId()));
+    assertEquals(organizationAccount.getId(), accountRepository.findById(organizationAccount.getId()).get().getId());
+  }
+
+  /**
+   * 1. Create a Personal Account for Alice
+   * 2. Create an Organization Account for Alice
+   * 3. Add a member to the Organization Account
+   * 4. Validate that the member was added successfully and can be retrieved by member ID
+   * 5. Update the member's role in the Organization Account
+   * 6. Validate that the member's role was updated successfully
+   * 7. Remove the member from the Organization Account
+   * 8. Validate that the member was removed successfully and can no longer be retrieved by member ID
+   */
+  @Test 
+  void testOrganizationAccountMemberManagement() {
+    // Step 1: Create a Personal Account for Alice
+    PersonalAccount personalAccount = new PersonalAccount("alice@github.com", "secure-password");
+    personalAccount = accountRepository.save(personalAccount);
+
+    // Step 2: Create an Organization Account for Alice
+    OrganizationAccount organizationAccount = new OrganizationAccount("GitHub", null, personalAccount.getId().toString(), null);
+    organizationAccount = (OrganizationAccount) mongoTemplate.save(organizationAccount);
+
+    // Step 3: Add a member to the Organization Account
+    organizationAccount.addMember("member-1", OrganizationRole.viewer); 
+
+    // Step 4: Validate that the member was added successfully and can be retrieved by member ID
+    assertTrue(organizationAccount.isMember("member-1"));
+    assertEquals(OrganizationRole.viewer, organizationAccount.getMemberRole("member-1"));
+
+    // Step 5: Update the member's role in the Organization Account
+    organizationAccount.updateMemberRole("member-1", OrganizationRole.editor);
+
+    // Step 6: Validate that the member's role was updated successfully
+    assertEquals(OrganizationRole.editor, organizationAccount.getMemberRole("member-1"));
+
+    // Step 7: Remove the member from the Organization Account
+    organizationAccount.removeMember("member-1");
+
+    // Step 8: Validate that the member was removed successfully and can no longer be retrieved by member ID
+    assertFalse(organizationAccount.isMember("member-1"));
   }
 }

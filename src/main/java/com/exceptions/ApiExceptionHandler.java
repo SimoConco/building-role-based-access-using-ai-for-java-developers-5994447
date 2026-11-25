@@ -33,6 +33,12 @@ public class ApiExceptionHandler {
         .body(Map.of("error", exception.getMessage()));
   }
 
+  @ExceptionHandler(OrganizationNotFoundException.class)
+  ResponseEntity<Map<String, String>> handleOrganizationMissing(OrganizationNotFoundException exception) {
+    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(Map.of("error", exception.getMessage()));
+  }
+
   @ExceptionHandler(SecurityException.class)
   ResponseEntity<Map<String, String>> handleForbidden(SecurityException exception) {
     return ResponseEntity.status(HttpStatus.FORBIDDEN)

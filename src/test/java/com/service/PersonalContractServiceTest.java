@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -93,8 +94,10 @@ class PersonalContractServiceTest {
   void testCreateContract(){
     //Create test account
     PersonalAccount account = new PersonalAccount("octocat@github.com", "secure-password");
-    account = accountRepository.save(account);
+    account.setId("octocat-account");
     when(accountRepository.findById(account.getId())).thenReturn(Optional.of(account));
+    when(contractRepository.save(any(Contract.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
 
     //Create contract
     String contractName = "GitHub Enterprise";
@@ -123,13 +126,16 @@ class PersonalContractServiceTest {
   void testOwnerContractFlow(){
     // Step 1: Create a Personal Account for Alice
     PersonalAccount aliceAccount = new PersonalAccount("alice@github.com", "secure-password");
-    aliceAccount = accountRepository.save(aliceAccount);
+    aliceAccount.setId("alice-account");
     when(accountRepository.findById(aliceAccount.getId())).thenReturn(Optional.of(aliceAccount));
 
     // Step 2: Create a Contract for Alice
     String contractName = "GitHub Enterprise";
     String contractDescription = "Annual plan";
+    when(contractRepository.save(any(Contract.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
     Contract contract = personalContractService.createContract(aliceAccount, contractName, contractDescription);
+    when(contractRepository.findById(contract.getId())).thenReturn(Optional.of(contract));
 
     // Step 3: Validate that contract is created
     assertNotNull(contract);
@@ -169,13 +175,16 @@ class PersonalContractServiceTest {
   void testNonOwnerContractFlow(){
     // Step 1: Create a Personal Account for Alice
     PersonalAccount aliceAccount = new PersonalAccount("alice@github.com", "secure-password");
-    aliceAccount = accountRepository.save(aliceAccount);
+    aliceAccount.setId("alice-account");
     when(accountRepository.findById(aliceAccount.getId())).thenReturn(Optional.of(aliceAccount));
 
     // Step 2: Create a Contract for Alice
     String contractName = "GitHub Enterprise";
     String contractDescription = "Annual plan";
+    when(contractRepository.save(any(Contract.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
     Contract contract = personalContractService.createContract(aliceAccount, contractName, contractDescription);
+    when(contractRepository.findById(contract.getId())).thenReturn(Optional.of(contract));
 
     // Step 3: Validate that contract is created
     assertNotNull(contract);
@@ -185,7 +194,7 @@ class PersonalContractServiceTest {
 
     // Step 4: Create a Personal Account for Bob
     PersonalAccount bobAccount = new PersonalAccount("bob@github.com", "secure-password");
-    accountRepository.save(bobAccount);
+    bobAccount.setId("bob-account");
     when(accountRepository.findById(bobAccount.getId())).thenReturn(Optional.of(bobAccount));
 
     // Step 5: Attempt to update the contract as Bob
